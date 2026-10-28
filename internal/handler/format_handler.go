@@ -1,46 +1,46 @@
-package handler 
+package handler
 
-import(
+import (
+	"errors"
+	"github.com/Sidi1901/mediamp3/internal/service"
+	"github.com/gin-gonic/gin"
 	"net/http"
 	"net/url"
-	"errors"
-	"github.com/gin-gonic/gin"
-	"github.com/Sidi1901/mediamp3/internal/service"
 )
 
 var (
-	NoURLError := errors.New("No Query URL in request")
-	NoValidYoutubeURL := errors.New("YouTube URL is invalid")
-	FormatBadGateway := errors.New("Failed to retrieve video formats")
+	NoURLError        = errors.New("No Query URL in request")
+      	NoValidYoutubeURL = errors.New("YouTube URL is invalid")
+	FormatBadGateway  = errors.New("Failed to retrieve video formats")
 )
 
 type FormatHandler struct {
 	formatService service.FormatService
 }
 
-func NewFormatHandler(formatService service.FormatService) *FormatHandler{
+func NewFormatHandler(formatService service.FormatService) *FormatHandler {
 	return &FormatHandler{
-		formatService : formatService,
+		formatService: formatService,
 	}
 }
 
-func (h *FormatHandler) GetFormats(c *gin.Context){
+func (h *FormatHandler) GetFormats(c *gin.Context) {
 
-	ctx := c.request.Context()
+	ctx := c.Request.Context()
 
-	videoURL := strings.Trimpspace(c.Query("url"))
+	videoURL := strings.Trimspace(c.Query("url"))
 
 	if videoURL == "" {
-		c.SJON(http.StatusbadRequest, gin.H{
-			"error" : NoURLError,
+		c.JSON(http.StatusbadRequest, gin.H{
+			"error": NoURLError,
 		})
 
 		return
 	}
 
 	if !isSupportedYoutubeURL(videoURL) {
-		c.JSON(http.StatusbadRequest, gin.H{
-			"error" : NoValidYoutubeURL,
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": NoValidYoutubeURL,
 		})
 	}
 
@@ -48,7 +48,7 @@ func (h *FormatHandler) GetFormats(c *gin.Context){
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error" : FormatBadGateway,
+			"error": FormatBadGateway,
 		})
 	}
 
@@ -69,13 +69,13 @@ func isSupportedYoutubeURL(rawURL string) bool {
 	host := strings.ToLower(pasedURL.Hostname())
 
 	switch host {
-		case "youtube.com", 
-		     "www.youtube.com",
-			 "m.youtube.com",
-			 "youtu.be",
-			 "www.youtube-nocookie.com":
-			 return true
-		default:
-			return false
+	case "youtube.com",
+		"www.youtube.com",
+		"m.youtube.com",
+		"youtu.be",
+		"www.youtube-nocookie.com":
+		return true
+	default:
+		return false
 	}
 }

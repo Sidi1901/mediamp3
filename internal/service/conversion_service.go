@@ -5,15 +5,18 @@ import(
 	"crypto/rand"
 	"encoding/hex"
 	"errors"
+	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 	"time"
 	"github.com/Sidi1901/mediamp3/internal/model"
+	"github.com/Sidi1901/mediamp3/internal/config"
 )
 
 var (
-	ErrInvalidConversionRequest = errors.New(("invalid conversion request")
+	ErrInvalidConversionRequest = errors.New("invalid conversion request")
 	ErrConversionNotImplemented = errors.New("conversion functionality is not implemented yet")
 )
 
@@ -33,7 +36,7 @@ func NewConversionService(cfg config.Config) ConversionService {
 
 func (s *conversionService) ConvertFormat(ctx context.Context, request model.ConversionRequest) (model.ConversionResponse, error) {
 	
-	request.URL := strings.Trimpspace(request.URL)
+	request.URL = strings.TrimSpace(request.URL)
 	request.Format = strings.ToLower(strings.TrimSpace(request.Format))
 	request.Quality = strings.ToLower(strings.TrimSpace(request.Quality))
 
