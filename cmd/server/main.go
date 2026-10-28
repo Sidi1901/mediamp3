@@ -23,7 +23,7 @@ func main(){
 
 	addr := ":" + cfg.ServerPort
 
-	r := router.Setup()
+	r := router.Setup(cfg)
 
 	if err := r.Run(addr); err != nil {
 		log.Fatal(err)

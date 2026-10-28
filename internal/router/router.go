@@ -2,19 +2,20 @@ package router
 
 import(
 	"github.com/gin-gonic/gin"
+	"github.com/Sidi1901/mediamp3/internal/config"
 	"github.com/Sidi1901/mediamp3/internal/handler"
 	"github.com/Sidi1901/mediamp3/internal/service"
 )
 
-func Setup() *gin.Engine {
+func Setup(cfg config.Config) *gin.Engine {
 	router := gin.New()
 
 	router.Use(gin.Logger())
 	router.Use(gin.Recovery())
 
 	// Services
-	formatService := service.NewFormatService()
-	conversionService := service.NewConversionService()
+	formatService := service.NewFormatService(cfg)
+	conversionService := service.NewConversionService(cfg)
 
 	//handler
 	healthHandler := handler.NewHealthHandler()

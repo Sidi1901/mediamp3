@@ -20,6 +20,7 @@ func NewConversionHandler(conversionService service.ConversionService) *Conversi
 }
 
 func (h *ConversionHandler) Convert(c *gin.Context){
+	ctx := c.Request.Context()
 
 	var request model.ConversionRequest
 
@@ -31,20 +32,28 @@ func (h *ConversionHandler) Convert(c *gin.Context){
 		return
 	}
 
-	response, err := h.conversionService.ConvertFormat(request)
+	response, err := h.conversionService.ConvertFormat(ctx, request)
 
 	if err != nil {
-		if errors.Is(err, service.ErrConversionNotImplemented){
+		switch {
+		case errors.Is(err, service.ErrInvalidConversionRequest):
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error": err.Error(),
+			})
+
+		case errors.Is(err, service.ErrConversionNotImplemented):
 			c.JSON(http.StatusNotImplemented, gin.H{
 				"error": "Conversion functionality is not implemented yet",
 			})
-			return
+
+		default:
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error": "Failed to create conversion",
+			})
 		}
+		return
 	}
 
-	c.JSON(http.StatusInternalServerError, gin.H{
-		"error" : "Failed to convert",
-	})
 
 	c.JSON(http.StatusAccepted, response)
 }
