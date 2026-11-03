@@ -6,6 +6,9 @@ import(
 
 type Config struct {
 	ServerPort string `env:"SERVER_PORT" envDefault:"8080"`
+	YtDlpPath string `env:"YT_DLP_PATH" envDefault:"yt-dlp"`
+	FFmpegPath string `env:"FFMPEG_PATH" envDefault:"ffmpeg"`
+	OutputDir string `env:"OUTPUT_DIR" envDefault:"./tmp/mediamp3"`
 }
 
 

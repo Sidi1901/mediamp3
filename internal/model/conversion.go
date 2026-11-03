@@ -1,5 +1,9 @@
 package model 
 
+import(
+	"errors"
+)
+
 type ConversionRequest struct {
 	URL     string  `json:"url" binding:"required"`
 	Format  string  `json:"format" binding:"requires,oneof=mp3 mp4"`
@@ -15,6 +19,10 @@ const (
 	ConversionStatusFailed     ConversionStatus = "failed"
 )
 
+var (
+	ErrInvalidConversionRequest = errors.New("Invalid Conversion request")
+)
+
 
 type ConversionJob struct {
 	ID      string            `json:"id"`
@@ -27,5 +35,5 @@ type ConversionJob struct {
 
 type ConversionResponse struct {
 	ID     string            `json:"id"`
-	status ConversionStatus  `json:"status"` 
+	Status ConversionStatus  `json:"status"` 
 }

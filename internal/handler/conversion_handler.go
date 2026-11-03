@@ -2,7 +2,9 @@ package handler
 
 import(
 	"net/http"
+	"os"
 	"errors"
+	"path/filepath"
 	"github.com/gin-gonic/gin"
 	"github.com/Sidi1901/mediamp3/internal/model"
 	"github.com/Sidi1901/mediamp3/internal/service"
@@ -32,7 +34,7 @@ func (h *ConversionHandler) Convert(c *gin.Context){
 		return
 	}
 
-	response, err := h.conversionService.ConvertFormat(ctx, request)
+	result, err := h.conversionService.ConvertFormat(ctx, request)
 
 	if err != nil {
 		switch {
@@ -54,6 +56,14 @@ func (h *ConversionHandler) Convert(c *gin.Context){
 		return
 	}
 
+	// remove temporary files after the download finishes
 
-	c.JSON(http.StatusAccepted, response)
+	defer func(){
+		_ = os.RemoveAll(filepath.Dir(result.FilePath))
+	}()
+
+	c.FileAttachment(result.FilePath, "converted."+ result.Format)
+
+
+	c.JSON(http.StatusAccepted, result.Response)
 }

@@ -6,6 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"net/url"
+	"strings"
 )
 
 var (
@@ -28,10 +29,10 @@ func (h *FormatHandler) GetFormats(c *gin.Context) {
 
 	ctx := c.Request.Context()
 
-	videoURL := strings.Trimspace(c.Query("url"))
+	videoURL := strings.TrimSpace(c.Query("url"))
 
 	if videoURL == "" {
-		c.JSON(http.StatusbadRequest, gin.H{
+		c.JSON(http.StatusBadRequest, gin.H{
 			"error": NoURLError,
 		})
 
