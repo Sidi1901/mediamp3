@@ -62,6 +62,14 @@ func (s *conversionService) ConvertFormat(ctx context.Context, request model.Con
 		return ConversionResult{}, fmt.Errorf("create output directory: %w", err)
 	}
 
+	conversionSucceeded := false
+
+	defer func() {
+		if !conversionSucceeded {
+			_ = os.RemoveAll(conversionDir)
+		}
+	}()
+
 	outputTemplate := filepath.Join(conversionDir, "output.%(ext)s")
 
 	if err := s.runYtDlp(ctx, request, outputTemplate); err != nil {
@@ -88,6 +96,8 @@ func (s *conversionService) ConvertFormat(ctx context.Context, request model.Con
 		)
 	}
 
+	conversionSucceeded = true
+
 	return ConversionResult{
 		Response: model.ConversionResponse{
 			ID:     id,
@@ -105,7 +115,17 @@ func (s *conversionService) runYtDlp(ctx context.Context, request model.Conversi
 
 	switch request.Format {
 	case "mp3":
-		args = append(args, "-x", "--audio-format", "mp3", "--audio-quality", request.Quality)
+		audioQuality, err := parseAudioQuality(request.Quality)
+		if err != nil {
+			return err
+		}
+
+		args = append(
+			args,
+			"-x",
+			"--audio-format", "mp3",
+			"--audio-quality", audioQuality,
+		)
 
 	case "mp4":
 		height, err := parseVideoQuality(request.Quality)
@@ -119,7 +139,7 @@ func (s *conversionService) runYtDlp(ctx context.Context, request model.Conversi
 		args = append(args, "-f", format, "--merge-output-format", "mp4")
 
 	default:
-		return model.ErrInvalidConversionRequest
+    	return ErrInvalidConversionRequest
 	}
 
 	args = append(args, request.URL)
@@ -185,6 +205,21 @@ func validateConversionRequest(request model.ConversionRequest) error {
 
 }
 
+
+func parseAudioQuality(quality string) (string, error) {
+    switch quality {
+    case "128kbps":
+        return "128K", nil
+    case "192kbps":
+        return "192K", nil
+    case "320kbps":
+        return "320K", nil
+    default:
+        return "", ErrInvalidConversionRequest
+    }
+}
+
+
 func parseVideoQuality(quality string) (int, error) {
 	switch quality {
 	case "360p":
@@ -195,8 +230,12 @@ func parseVideoQuality(quality string) (int, error) {
 		return 720, nil
 	case "1080p":
 		return 1080, nil
+	case "1440p":
+		return 1440, nil
+	case "2160p":
+		return 2160, nil
 	default:
-		return 0, model.ErrInvalidConversionRequest
+    return 0, ErrInvalidConversionRequest
 	}
 }
 

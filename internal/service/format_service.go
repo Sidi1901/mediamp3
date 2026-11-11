@@ -8,6 +8,7 @@ import (
 	"os/exec"
 	"sort"
 	"strconv"
+	"bytes"
 
 	"github.com/Sidi1901/mediamp3/internal/config"
 	"github.com/Sidi1901/mediamp3/internal/model"
@@ -38,13 +39,14 @@ type ytDlpFormat struct {
 	ACodec    string `json:"acodec"`
 }
 
+
 func (s *formatService) GetFormats(
 	ctx context.Context,
 	videoURL string,
 ) (model.FormatResponse, error) {
 	cmd := exec.CommandContext(
 		ctx,
-		"yt-dlp",
+		s.cfg.YtDlpPath,
 		"--no-warnings",
 		"--skip-download",
 		"--dump-single-json",
@@ -53,11 +55,15 @@ func (s *formatService) GetFormats(
 		videoURL,
 	)
 
+	var stderr bytes.Buffer
+	cmd.Stderr = &stderr
+
 	output, err := cmd.Output()
 	if err != nil {
 		return model.FormatResponse{}, fmt.Errorf(
-			"inspect video formats: %w",
+			"inspect video formats: %w: %s",
 			err,
+			stderr.String(),
 		)
 	}
 
@@ -84,6 +90,7 @@ func (s *formatService) GetFormats(
 	}
 
 	var resolutions []int
+
 	for height := range heights {
 		resolutions = append(resolutions, height)
 	}
@@ -91,6 +98,7 @@ func (s *formatService) GetFormats(
 	sort.Ints(resolutions)
 
 	qualities := make([]string, 0, len(resolutions))
+
 	for _, height := range resolutions {
 		qualities = append(
 			qualities,
@@ -111,3 +119,4 @@ func (s *formatService) GetFormats(
 		},
 	}, nil
 }
+

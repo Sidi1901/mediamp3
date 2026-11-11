@@ -1,8 +1,5 @@
 package model 
 
-import(
-	"errors"
-)
 
 type ConversionRequest struct {
 	URL     string  `json:"url" binding:"required"`
@@ -19,9 +16,6 @@ const (
 	ConversionStatusFailed     ConversionStatus = "failed"
 )
 
-var (
-	ErrInvalidConversionRequest = errors.New("Invalid Conversion request")
-)
 
 
 type ConversionJob struct {

@@ -1,36 +1,40 @@
-package handler 
 
-import(
+package handler
+
+import (
+	"errors"
 	"net/http"
 	"os"
-	"errors"
+	"context"
 	"path/filepath"
+
 	"github.com/gin-gonic/gin"
+
 	"github.com/Sidi1901/mediamp3/internal/model"
 	"github.com/Sidi1901/mediamp3/internal/service"
 )
 
-
-type ConversionHandler struct{
+type ConversionHandler struct {
 	conversionService service.ConversionService
 }
 
-func NewConversionHandler(conversionService service.ConversionService) *ConversionHandler{
+func NewConversionHandler(
+	conversionService service.ConversionService,
+) *ConversionHandler {
 	return &ConversionHandler{
 		conversionService: conversionService,
 	}
 }
 
-func (h *ConversionHandler) Convert(c *gin.Context){
+func (h *ConversionHandler) Convert(c *gin.Context) {
 	ctx := c.Request.Context()
 
 	var request model.ConversionRequest
 
 	if err := c.ShouldBindJSON(&request); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error":"Invalid Request",
+			"error": "Invalid conversion request",
 		})
-
 		return
 	}
 
@@ -39,31 +43,34 @@ func (h *ConversionHandler) Convert(c *gin.Context){
 	if err != nil {
 		switch {
 		case errors.Is(err, service.ErrInvalidConversionRequest):
+
 			c.JSON(http.StatusBadRequest, gin.H{
 				"error": err.Error(),
 			})
 
-		case errors.Is(err, service.ErrConversionNotImplemented):
-			c.JSON(http.StatusNotImplemented, gin.H{
-				"error": "Conversion functionality is not implemented yet",
+		case errors.Is(err, context.Canceled):
+			c.JSON(http.StatusRequestTimeout, gin.H{
+				"error": "Conversion cancelled",
+			})
+
+		case errors.Is(err, context.DeadlineExceeded):
+			c.JSON(http.StatusGatewayTimeout, gin.H{
+				"error": "Conversion timed out",
 			})
 
 		default:
 			c.JSON(http.StatusInternalServerError, gin.H{
-				"error": "Failed to create conversion",
+				"error": "Failed to convert media",
 			})
 		}
 		return
 	}
 
-	// remove temporary files after the download finishes
-
-	defer func(){
+	defer func() {
 		_ = os.RemoveAll(filepath.Dir(result.FilePath))
 	}()
 
-	c.FileAttachment(result.FilePath, "converted."+ result.Format)
+	filename := "converted." + result.Format
 
-
-	c.JSON(http.StatusAccepted, result.Response)
+	c.FileAttachment(result.FilePath, filename)
 }
