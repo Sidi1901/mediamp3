@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"github.com/Sidi1901/mediamp3/internal/config"
 	"github.com/Sidi1901/mediamp3/internal/model"
+	"github.com/Sidi1901/mediamp3/internal/validation"
 	"net/url"
 	"os"
 	"os/exec"
@@ -167,20 +168,14 @@ func generateID() (string, error) {
 }
 
 func validateConversionRequest(request model.ConversionRequest) error {
-	parsedURL, err := url.ParseRequestURI(request.URL)
-
-	// valid url scheme
-	if err != nil || parsedURL.Scheme != "https" || parsedURL.User != nil {
-		return fmt.Errorf("%w: invalid URL", ErrInvalidConversionRequest)
-	}
 
 	// valid host/domain
-	switch strings.ToLower(parsedURL.Hostname()) {
-	case "youtube.com", "www.youtube.com", "m.youtube.com", "youtu.be":
-		// Allowed hostname.
-	default:
+	if validation.IsValidYoutubeURL(request.URL){
+
+	}else{
 		return fmt.Errorf("%w: unsupported URL host", ErrInvalidConversionRequest)
 	}
+
 
 	switch request.Format {
 	case "mp3":

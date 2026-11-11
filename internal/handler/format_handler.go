@@ -9,6 +9,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/Sidi1901/mediamp3/internal/service"
+	"github.com/Sidi1901/mediamp3/internal/validation"
 )
 
 var (
@@ -39,7 +40,7 @@ func (h *FormatHandler) GetFormats(c *gin.Context) {
 		return
 	}
 
-	if !isSupportedYoutubeURL(videoURL) {
+	if !validation.IsValidYoutubeURL(videoURL) {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": NoValidYoutubeURL.Error(),
 		})
@@ -57,26 +58,3 @@ func (h *FormatHandler) GetFormats(c *gin.Context) {
 	c.JSON(http.StatusOK, formatsResponse)
 }
 
-func isSupportedYoutubeURL(rawURL string) bool {
-	parsedURL, err := url.ParseRequestURI(rawURL)
-	if err != nil {
-		return false
-	}
-
-	if parsedURL.Scheme != "https" || parsedURL.User != nil {
-		return false
-	}
-
-	host := strings.ToLower(parsedURL.Hostname())
-
-	switch host {
-	case "youtube.com",
-		"www.youtube.com",
-		"m.youtube.com",
-		"youtu.be",
-		"www.youtube-nocookie.com":
-		return true
-	default:
-		return false
-	}
-}

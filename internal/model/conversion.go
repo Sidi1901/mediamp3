@@ -3,7 +3,7 @@ package model
 
 type ConversionRequest struct {
 	URL     string  `json:"url" binding:"required"`
-	Format  string  `json:"format" binding:"requires,oneof=mp3 mp4"`
+	Format  string  `json:"format" binding:"required,oneof=mp3 mp4"`
 	Quality string  `json:"quality" binding:"required"`
 }
 
